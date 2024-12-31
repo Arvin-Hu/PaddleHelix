@@ -12,33 +12,35 @@ if ! command -v aria2c &> /dev/null ; then
     exit 1
 fi
 
-if ! command -v rsync &> /dev/null ; then
-    echo "Error: rsync could not be found. Please install rsync."
-    exit 1
-fi
+# if ! command -v rsync &> /dev/null ; then
+#     echo "Error: rsync could not be found. Please install rsync."
+#     exit 1
+# fi
 
 DOWNLOAD_DIR="$1"
 ROOT_DIR="${DOWNLOAD_DIR}/pdb_mmcif"
-RAW_DIR="${ROOT_DIR}/raw"
-MMCIF_DIR="${ROOT_DIR}/mmcif_files"
+# RAW_DIR="${ROOT_DIR}/raw"
+# MMCIF_DIR="${ROOT_DIR}/mmcif_files"
 
-echo "Running rsync to fetch all mmCIF files (note that the rsync progress estimate might be inaccurate)..."
-mkdir --parents "${RAW_DIR}"
-rsync --recursive --links --perms --times --compress --info=progress2 --delete --port=33444 \
-  rsync.rcsb.org::ftp_data/structures/divided/mmCIF/ \
-  "${RAW_DIR}"
+# echo "Running rsync to fetch all mmCIF files (note that the rsync progress estimate might be inaccurate)..."
+# mkdir --parents "${RAW_DIR}"
+# rsync --recursive --links --perms --times --compress --info=progress2 --delete --port=33444 \
+#   rsync.rcsb.org::ftp_data/structures/divided/mmCIF/ \
+#   "${RAW_DIR}"
 
-echo "Unzipping all mmCIF files..."
-find "${RAW_DIR}/" -type f -iname "*.gz" -exec gunzip {} +
+# echo "Unzipping all mmCIF files..."
+# find "${RAW_DIR}/" -type f -iname "*.gz" -exec gunzip {} +
 
-echo "Flattening all mmCIF files..."
-mkdir --parents "${MMCIF_DIR}"
-find "${RAW_DIR}" -type d -empty -delete  # Delete empty directories.
-for subdir in "${RAW_DIR}"/*; do
-  mv "${subdir}/"*.cif "${MMCIF_DIR}"
-done
+# echo "Flattening all mmCIF files..."
+# mkdir --parents "${MMCIF_DIR}"
+# find "${RAW_DIR}" -type d -empty -delete  # Delete empty directories.
+# for subdir in "${RAW_DIR}"/*; do
+#   mv "${subdir}/"*.cif "${MMCIF_DIR}"
+# done
 
 # Delete empty download directory structure.
-find "${RAW_DIR}" -type d -empty -delete
+# find "${RAW_DIR}" -type d -empty -delete
 
-aria2c "ftp://ftp.wwpdb.org/pub/pdb/data/status/obsolete.dat" --dir="${ROOT_DIR}"
+mkdir -p "${ROOT_DIR}"
+# 修改为 HTTPS 链接
+wget https://files.rcsb.org/pub/pdb/data/status/obsolete.dat -O "${ROOT_DIR}/obsolete.dat"

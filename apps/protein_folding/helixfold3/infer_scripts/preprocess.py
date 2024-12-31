@@ -273,36 +273,51 @@ def modify_name_convert(entities: list):
 
 
 def online_json_to_entity(json_path, out_dir):
+    # 读取JSON文件内容
     obj = read_json(json_path)
+    # 深拷贝entities数组,避免修改原始数据
     entities = copy.deepcopy(obj['entities'])
 
+    # 创建输出目录
     os.makedirs(out_dir, exist_ok=True)
+    # 初始化错误ID列表和成功实体列表
     error_ids = []
     success_entity = []
+
+    # 遍历每个实体
     for idx, items in enumerate(entities):
-        try: 
+        try:
+            # 对实体进行重命名和过滤
             items = entities_rename_and_filter(items)
         except Exception as e:
+            # 如果失败,打印错误信息并记录错误代码2(无效实体转换)
             print(f'Failed to convert entity {idx}: {items}, {e}')
             error_ids.append((idx, ERROR_CODES[2]))
             continue
         
         try:
+            # 根据实体类型进行不同的转换
             if items['type'] == 'ligand':
+                # 配体类型转换
                 json_obj = ligand_convert(items)
             else:
+                # 聚合物类型转换(蛋白质、DNA、RNA等)
                 json_obj = polymer_convert(items)
+            # 添加到成功列表
             success_entity.append(json_obj)
         except Exception as e:
+            # 如果转换失败,根据类型记录不同的错误代码
             if items['type'] == 'ligand':
                 print(f'Failed to convert ligand entity {idx}: {items}, {e}')
-                error_ids.append((idx, ERROR_CODES[1]))
+                error_ids.append((idx, ERROR_CODES[1])) # 错误代码1:无效配体生成
             else:
                 print(f'Failed to convert polymer entity {idx}: {items}, {e}')
-                error_ids.append((idx, ERROR_CODES[3]))
+                error_ids.append((idx, ERROR_CODES[3])) # 错误代码3:未知错误
 
+    # 如果有错误,抛出运行时异常
     if len(error_ids) > 0:
         raise RuntimeError(f'[Error] Failed to convert {len(error_ids)}/{len(entities)} entities')    
     
+    # 对成功的实体进行名称修改
     success_entity = modify_name_convert(success_entity)
     return success_entity

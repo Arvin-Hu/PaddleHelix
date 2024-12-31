@@ -1,0 +1,108 @@
+# 第一阶段: 构建Maxit
+FROM ubuntu:20.04 AS maxit-builder
+
+# 简化源配置
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends\
+    wget \
+    build-essential \
+    make \
+    bison \
+    flex \
+    && rm -rf /var/lib/apt/lists/*
+
+# 使用原始链接下载
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    wget https://sw-tools.rcsb.org/apps/MAXIT/maxit-v11.100-prod-src.tar.gz \
+    && tar -xzf maxit-v11.100-prod-src.tar.gz \
+    && cd maxit-v11.100-prod-src \
+    && make \
+    && mkdir -p /usr/local/bin \
+    && mkdir -p /usr/local/lib/maxit \
+    && install -m 755 maxit-v10.1/bin/maxit /usr/local/bin/ \
+    && install -m 644 maxit-v10.1/lib/* /usr/local/lib/maxit/ \
+    && rm -rf /var/lib/apt/lists/*
+
+# 第二阶段: 构建HH-suite
+FROM ubuntu:20.04 AS hhsuite-builder
+
+# 简化源配置和下载
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# 使用原始链接下载并解压到指定目录
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    cd / && \
+    wget https://github.com/soedinglab/hh-suite/releases/download/v3.3.0/hhsuite-3.3.0-SSE2-Linux.tar.gz && \
+    mkdir hhsuite-3.3.0-SSE2-Linux && \
+    tar xvfz hhsuite-3.3.0-SSE2-Linux.tar.gz -C hhsuite-3.3.0-SSE2-Linux && \
+    rm hhsuite-3.3.0-SSE2-Linux.tar.gz && \
+    rm -rf /var/lib/apt/lists/*
+
+
+# 最终阶段: 运行环境
+FROM nvcr.io/nvidia/cuda:12.0.0-cudnn8-devel-ubuntu20.04
+
+# 设置环境变量
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Asia/Shanghai \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
+
+# 简化源配置
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    python3.9 \
+    python3.9-venv \
+    python3.9-dev \
+    hmmer \
+    kalign \
+    libopenbabel-dev \
+    openbabel \
+    aria2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# 创建Python虚拟环境
+RUN python3.9 -m venv $VIRTUAL_ENV
+
+# 从第一阶段复制Maxit
+COPY --from=maxit-builder /usr/local/bin/maxit /usr/local/bin/
+COPY --from=maxit-builder /usr/local/lib/maxit /usr/local/lib/maxit
+
+
+# 设置环境变量，确保程序能找到数据文件
+ENV HHLIB=/usr/local/hhsuite \
+    PATH="${PATH}:${HHLIB}/bin:${HHLIB}/scripts"
+
+# 创建目标目录
+RUN mkdir -p ${HHLIB}
+# 从第二阶段复制HH-suite
+COPY --from=hhsuite-builder /hhsuite-3.3.0-SSE2-Linux/* ${HHLIB}
+
+# 配置pip国内源
+RUN mkdir -p ~/.pip && \
+    echo "[global]" > ~/.pip/pip.conf && \
+    echo "index-url = https://mirrors.aliyun.com/pypi/simple/" >> ~/.pip/pip.conf && \
+    echo "trusted-host = mirrors.aliyun.com" >> ~/.pip/pip.conf
+
+# 安装Python包
+COPY requirements.txt /tmp/
+RUN pip install --no-cache-dir -U pip && \
+    pip install --no-cache-dir paddlepaddle-gpu==2.6.1.post120 -f https://www.paddlepaddle.org.cn/whl/linux/mkl/avx/stable.html && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
+
+# 设置工作目录
+WORKDIR /apps/helixfold3
+
+COPY . /apps/helixfold3
+
+LABEL maintainer="Arvin-Hu" \
+      description="HelixFold3 environment with CUDA 12.0, Python 3.9 and PaddlePaddle 2.6.1"

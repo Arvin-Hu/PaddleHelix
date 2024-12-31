@@ -22,39 +22,39 @@ fi
 
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
-echo "Downloading HelixFold3 checkpoints..."
+echo "Downloading HelixFold3 checkpoints...  NOT to do"
 bash "${SCRIPT_DIR}/download_helixfold3_checkpoints.sh" "${DOWNLOAD_DIR}"
 
-if [[ "${DOWNLOAD_MODE}" = reduced_dbs ]] ; then
-  echo "Downloading Small BFD..."
-  bash "${SCRIPT_DIR}/download_small_bfd.sh" "${DOWNLOAD_DIR}"
-else
-  echo "Downloading BFD..."
-  bash "${SCRIPT_DIR}/download_bfd.sh" "${DOWNLOAD_DIR}"
-fi
+#if [[ "${DOWNLOAD_MODE}" = reduced_dbs ]] ; then
+#  echo "Downloading Small BFD..."
+#  bash "${SCRIPT_DIR}/download_small_bfd.sh" "${DOWNLOAD_DIR}"
+#else
+#  echo "Downloading BFD..."
+#  bash "${SCRIPT_DIR}/download_bfd.sh" "${DOWNLOAD_DIR}"
+#fi
 
-echo "Downloading MGnify..."
-bash "${SCRIPT_DIR}/download_mgnify.sh" "${DOWNLOAD_DIR}"
+echo "Downloading MGnify...  NOT to do"
+#bash "${SCRIPT_DIR}/download_mgnify.sh" "${DOWNLOAD_DIR}"
 
-echo "Downloading PDB mmCIF files..."
-bash "${SCRIPT_DIR}/download_pdb_mmcif.sh" "${DOWNLOAD_DIR}"
+echo "Downloading PDB mmCIF files...  NOT to do"
+#bash "${SCRIPT_DIR}/download_pdb_mmcif.sh" "${DOWNLOAD_DIR}"
 
-echo "Downloading Uniclust30..."
-bash "${SCRIPT_DIR}/download_uniclust30.sh" "${DOWNLOAD_DIR}"
+echo "Downloading Uniclust30...  NOT to do"
+#bash "${SCRIPT_DIR}/download_uniclust30.sh" "${DOWNLOAD_DIR}"
 
-echo "Downloading Uniref90..."
-bash "${SCRIPT_DIR}/download_uniref90.sh" "${DOWNLOAD_DIR}"
+echo "Downloading Uniref90...  NOT to do"
+#bash "${SCRIPT_DIR}/download_uniref90.sh" "${DOWNLOAD_DIR}"
 
-echo "Downloading UniProt..."
-bash "${SCRIPT_DIR}/download_uniprot.sh" "${DOWNLOAD_DIR}"
+echo "Downloading UniProt...  NOT to do"
+#bash "${SCRIPT_DIR}/download_uniprot.sh" "${DOWNLOAD_DIR}"
 
-echo "Downloading PDB SeqRes..."
-bash "${SCRIPT_DIR}/download_pdb_seqres.sh" "${DOWNLOAD_DIR}"
+echo "Downloading PDB SeqRes... DONE"
+#bash "${SCRIPT_DIR}/download_pdb_seqres.sh" "${DOWNLOAD_DIR}"
 
-echo "Downloading RNA MSA..."
-bash "${SCRIPT_DIR}/download_rna.sh" "${DOWNLOAD_DIR}"
+echo "Downloading RNA MSA... DONE"
+#bash "${SCRIPT_DIR}/download_rna.sh" "${DOWNLOAD_DIR}"
 
-echo "Downloading CCD pickel..."
-bash "${SCRIPT_DIR}/download_ccd_pkl.sh" "${DOWNLOAD_DIR}"
+echo "Downloading CCD pickel... DONE"
+#bash "${SCRIPT_DIR}/download_ccd_pkl.sh" "${DOWNLOAD_DIR}"
 
 echo "All data downloaded."

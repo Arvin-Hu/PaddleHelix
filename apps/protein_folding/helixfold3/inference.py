@@ -46,17 +46,18 @@ INVERSE_ALLOWED_LIGAND_BONDS_TYPE_MAP = {
     v: k for k, v in ALLOWED_LIGAND_BONDS_TYPE_MAP.items()
 }
 
+#预测结果的详细评估指标
 DISPLAY_RESULTS_KEYS = [
-    'atom_chain_ids',
-    'atom_plddts',
-    'pae',
-    'token_chain_ids',
-    'token_res_ids',
-    'iptm',
-    'ptm',
-    'ranking_confidence',
-    'has_clash', 
-    'mean_plddt',
+    'atom_chain_ids',      # 原子链ID
+    'atom_plddts',         # 每个原子的pLDDT分数(预测局部距离差异检验)
+    'pae',                 # 预测对齐误差(Predicted Aligned Error)
+    'token_chain_ids',     # token链ID
+    'token_res_ids',       # token残基ID
+    'iptm',               # 接口模板匹配得分
+    'ptm',                # 模板匹配得分
+    'ranking_confidence',  # 排序置信度
+    'has_clash',          # 是否存在原子碰撞
+    'mean_plddt',         # 平均pLDDT分数
 ]
 
 RETURN_KEYS = ['diffusion_module', 'confidence_head']
@@ -465,7 +466,7 @@ def main(args):
 
     logger.info('Getting MSA/Template Pipelines...')
     msa_templ_data_pipeline_dict = get_msa_templates_pipeline(args)
-        
+
 
     ### create model
     model_config = config.model_config(args.model_name)
